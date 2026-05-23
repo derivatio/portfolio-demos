@@ -1,0 +1,164 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Multi-Channel Budget Allocation — SQL</title>
+<style>
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; max-width: 980px; margin: 40px auto; padding: 0 20px; color:#1a1f36; line-height: 1.5; }
+h1 { margin-bottom: 4px; } .subtitle { color:#6b7280; margin-bottom: 24px; }
+.src { background:#f6f8fa; padding:16px; border-radius:8px; overflow-x:auto; font-size:13px; }
+pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.src .hll { background-color: #ffffcc }
+.src { background: #f8f8f8; }
+.src .c { color: #3D7B7B; font-style: italic } /* Comment */
+.src .err { border: 1px solid #FF0000 } /* Error */
+.src .k { color: #008000; font-weight: bold } /* Keyword */
+.src .o { color: #666666 } /* Operator */
+.src .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.src .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.src .cp { color: #9C6500 } /* Comment.Preproc */
+.src .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.src .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.src .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.src .gd { color: #A00000 } /* Generic.Deleted */
+.src .ge { font-style: italic } /* Generic.Emph */
+.src .gr { color: #E40000 } /* Generic.Error */
+.src .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.src .gi { color: #008400 } /* Generic.Inserted */
+.src .go { color: #717171 } /* Generic.Output */
+.src .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.src .gs { font-weight: bold } /* Generic.Strong */
+.src .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.src .gt { color: #0044DD } /* Generic.Traceback */
+.src .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.src .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.src .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.src .kp { color: #008000 } /* Keyword.Pseudo */
+.src .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.src .kt { color: #B00040 } /* Keyword.Type */
+.src .m { color: #666666 } /* Literal.Number */
+.src .s { color: #BA2121 } /* Literal.String */
+.src .na { color: #687822 } /* Name.Attribute */
+.src .nb { color: #008000 } /* Name.Builtin */
+.src .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.src .no { color: #880000 } /* Name.Constant */
+.src .nd { color: #AA22FF } /* Name.Decorator */
+.src .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.src .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.src .nf { color: #0000FF } /* Name.Function */
+.src .nl { color: #767600 } /* Name.Label */
+.src .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.src .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.src .nv { color: #19177C } /* Name.Variable */
+.src .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.src .w { color: #bbbbbb } /* Text.Whitespace */
+.src .mb { color: #666666 } /* Literal.Number.Bin */
+.src .mf { color: #666666 } /* Literal.Number.Float */
+.src .mh { color: #666666 } /* Literal.Number.Hex */
+.src .mi { color: #666666 } /* Literal.Number.Integer */
+.src .mo { color: #666666 } /* Literal.Number.Oct */
+.src .sa { color: #BA2121 } /* Literal.String.Affix */
+.src .sb { color: #BA2121 } /* Literal.String.Backtick */
+.src .sc { color: #BA2121 } /* Literal.String.Char */
+.src .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.src .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.src .s2 { color: #BA2121 } /* Literal.String.Double */
+.src .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.src .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.src .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.src .sx { color: #008000 } /* Literal.String.Other */
+.src .sr { color: #A45A77 } /* Literal.String.Regex */
+.src .s1 { color: #BA2121 } /* Literal.String.Single */
+.src .ss { color: #19177C } /* Literal.String.Symbol */
+.src .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.src .fm { color: #0000FF } /* Name.Function.Magic */
+.src .vc { color: #19177C } /* Name.Variable.Class */
+.src .vg { color: #19177C } /* Name.Variable.Global */
+.src .vi { color: #19177C } /* Name.Variable.Instance */
+.src .vm { color: #19177C } /* Name.Variable.Magic */
+.src .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style></head><body>
+<h1>Multi-Channel Budget Allocation — SQL</h1>
+<div class="subtitle">Case study · 2025 · PostgreSQL</div>
+<h2 style='margin-top:32px'>queries.sql</h2><div class="src"><pre><span></span><span class="o">#</span><span class="n">PostgreSQL</span><span class="w"></span>
+<span class="o">#</span><span class="n">Query</span><span class="w"> </span><span class="mi">1</span><span class="p">:</span><span class="w"></span>
+<span class="o">#</span><span class="n">This</span><span class="w"> </span><span class="n">query</span><span class="w"> </span><span class="n">generates</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="k">table</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">I</span><span class="w"> </span><span class="n">used</span><span class="w"> </span><span class="k">Analyse</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="n">Allocated</span><span class="w"> </span><span class="n">ROAS</span><span class="w"> </span><span class="n">section</span><span class="p">.</span><span class="w"></span>
+
+<span class="k">WITH</span><span class="w"> </span><span class="n">TABLE_ALL</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
+<span class="w">    </span><span class="k">SELECT</span><span class="w"> </span>
+<span class="w">        </span><span class="ss">&quot;Month&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">        </span><span class="ss">&quot;Spend&quot;</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Total Spend&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="ss">&quot;Installs&quot;</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Total Installs&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="ss">&quot;Blended Revenue D30&quot;</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Total Revenue D30&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">anonymized_table</span><span class="w"> </span>
+<span class="w">    </span><span class="k">WHERE</span><span class="w"> </span><span class="ss">&quot;Source&quot;</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;ALL&#39;</span><span class="p">)</span><span class="w"> </span>
+<span class="p">),</span><span class="w"></span>
+
+<span class="n">TABLE_SOURCE</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
+<span class="w">    </span><span class="k">SELECT</span><span class="w"> </span>
+<span class="w">        </span><span class="ss">&quot;Month&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">        </span><span class="ss">&quot;Source&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">        </span><span class="ss">&quot;Installs&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="ss">&quot;Spend&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">anonymized_table</span><span class="w"> </span>
+<span class="w">    </span><span class="k">WHERE</span><span class="w"> </span><span class="ss">&quot;Source&quot;</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;ALL&#39;</span><span class="p">)</span><span class="w"> </span>
+<span class="p">),</span><span class="w"></span>
+
+<span class="n">TABLE_MERGE</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
+<span class="w">    </span><span class="k">SELECT</span><span class="w"> </span>
+<span class="w">        </span><span class="n">a</span><span class="p">.</span><span class="o">*</span><span class="p">,</span><span class="w"> </span>
+<span class="w">        </span><span class="n">s</span><span class="p">.</span><span class="ss">&quot;Source&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="n">s</span><span class="p">.</span><span class="ss">&quot;Installs&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="n">s</span><span class="p">.</span><span class="ss">&quot;Spend&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="k">FROM</span><span class="w"> </span><span class="n">TABLE_ALL</span><span class="w"> </span><span class="n">a</span><span class="w"></span>
+<span class="w">    </span><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">TABLE_SOURCE</span><span class="w"> </span><span class="n">s</span><span class="w"> </span>
+<span class="w">    </span><span class="k">ON</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="ss">&quot;Month&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="ss">&quot;Month&quot;</span><span class="w"></span>
+<span class="p">),</span><span class="w"></span>
+
+<span class="n">TABLE_FINAL</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
+<span class="w">  </span><span class="k">SELECT</span><span class="w"> </span>
+<span class="w">    </span><span class="ss">&quot;Month&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="ss">&quot;Source&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Spend&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="ss">&quot;Spend&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Installs&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="ss">&quot;Installs&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Spend&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="k">NULLIF</span><span class="p">(</span><span class="ss">&quot;Installs&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;CPI&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="k">sum</span><span class="p">(</span><span class="k">NULLIF</span><span class="p">(</span><span class="ss">&quot;Installs&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="k">NULLIF</span><span class="p">(</span><span class="ss">&quot;Total Installs&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Total Revenue D30&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Est. Revenue&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="k">NULLIF</span><span class="p">(</span><span class="ss">&quot;Installs&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="k">NULLIF</span><span class="p">(</span><span class="ss">&quot;Total Installs&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Total Revenue D30&quot;</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="k">NULLIF</span><span class="p">(</span><span class="ss">&quot;Spend&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Est. ROI&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">TABLE_MERGE</span><span class="w"></span>
+<span class="w">  </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="ss">&quot;Month&quot;</span><span class="p">,</span><span class="ss">&quot;Source&quot;</span><span class="w"></span>
+<span class="p">)</span><span class="w"></span>
+
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">TABLE_FINAL</span><span class="w"></span>
+
+<span class="o">#</span><span class="n">Query</span><span class="w"> </span><span class="mi">2</span><span class="p">:</span><span class="w"></span>
+<span class="o">#</span><span class="n">This</span><span class="w"> </span><span class="n">query</span><span class="w"> </span><span class="n">used</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">paid</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">organic</span><span class="w"> </span><span class="n">installs</span><span class="w"> </span><span class="n">graph</span><span class="w"></span>
+<span class="k">SELECT</span><span class="w"> </span>
+<span class="w">    </span><span class="ss">&quot;Month&quot;</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Month&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span>
+<span class="w">        </span><span class="k">WHEN</span><span class="w"> </span><span class="ss">&quot;Source&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Organic&#39;</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="ss">&quot;Installs&quot;</span><span class="w"> </span>
+<span class="w">        </span><span class="k">ELSE</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span>
+<span class="w">    </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Organic Installs&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span>
+<span class="w">        </span><span class="k">WHEN</span><span class="w"> </span><span class="ss">&quot;Source&quot;</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;Organic&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;ALL&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="ss">&quot;Installs&quot;</span><span class="w"> </span>
+<span class="w">        </span><span class="k">ELSE</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span>
+<span class="w">    </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Paid Installs&quot;</span><span class="w"></span>
+<span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">anonymized_table</span><span class="w"></span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="ss">&quot;Month&quot;</span><span class="w"></span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="ss">&quot;Month&quot;</span><span class="w"> </span><span class="k">ASC</span><span class="w"></span>
+
+<span class="o">#</span><span class="n">Query</span><span class="w"> </span><span class="mi">3</span><span class="p">:</span><span class="w"></span>
+<span class="o">#</span><span class="n">This</span><span class="w"> </span><span class="n">query</span><span class="w"> </span><span class="n">used</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="k">Analyse</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="n">Months</span><span class="w"> </span><span class="n">section</span><span class="w"></span>
+<span class="k">SELECT</span><span class="w"> </span>
+<span class="ss">&quot;Month&quot;</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Month&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="ss">&quot;Source&quot;</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Source&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Installs&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Total Installs&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Spend&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Total Spend&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Spend&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Installs&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;CPI&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Blended Revenue D30&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Installs&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;ARPU D30&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Blended Revenue D30&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="ss">&quot;Spend&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="ss">&quot;Blended ROI D30&quot;</span><span class="w"></span>
+<span class="k">FROM</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">anonymized_table</span><span class="w"> </span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="ss">&quot;Month&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">&quot;Source&quot;</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="ss">&quot;Month&quot;</span><span class="w"> </span><span class="k">ASC</span><span class="w"> </span>
+</pre></div>
+
+</body></html>

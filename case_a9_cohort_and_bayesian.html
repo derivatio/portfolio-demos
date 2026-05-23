@@ -1,0 +1,165 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Cohort Pipeline + Bayesian Retention</title>
+<style>
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; max-width: 980px; margin: 40px auto; padding: 0 20px; color:#1a1f36; line-height: 1.5; }
+h1 { margin-bottom: 4px; } .subtitle { color:#6b7280; margin-bottom: 24px; }
+.src { background:#f6f8fa; padding:16px; border-radius:8px; overflow-x:auto; font-size:13px; }
+pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.src .hll { background-color: #ffffcc }
+.src { background: #f8f8f8; }
+.src .c { color: #3D7B7B; font-style: italic } /* Comment */
+.src .err { border: 1px solid #FF0000 } /* Error */
+.src .k { color: #008000; font-weight: bold } /* Keyword */
+.src .o { color: #666666 } /* Operator */
+.src .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.src .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.src .cp { color: #9C6500 } /* Comment.Preproc */
+.src .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.src .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.src .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.src .gd { color: #A00000 } /* Generic.Deleted */
+.src .ge { font-style: italic } /* Generic.Emph */
+.src .gr { color: #E40000 } /* Generic.Error */
+.src .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.src .gi { color: #008400 } /* Generic.Inserted */
+.src .go { color: #717171 } /* Generic.Output */
+.src .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.src .gs { font-weight: bold } /* Generic.Strong */
+.src .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.src .gt { color: #0044DD } /* Generic.Traceback */
+.src .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.src .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.src .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.src .kp { color: #008000 } /* Keyword.Pseudo */
+.src .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.src .kt { color: #B00040 } /* Keyword.Type */
+.src .m { color: #666666 } /* Literal.Number */
+.src .s { color: #BA2121 } /* Literal.String */
+.src .na { color: #687822 } /* Name.Attribute */
+.src .nb { color: #008000 } /* Name.Builtin */
+.src .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.src .no { color: #880000 } /* Name.Constant */
+.src .nd { color: #AA22FF } /* Name.Decorator */
+.src .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.src .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.src .nf { color: #0000FF } /* Name.Function */
+.src .nl { color: #767600 } /* Name.Label */
+.src .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.src .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.src .nv { color: #19177C } /* Name.Variable */
+.src .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.src .w { color: #bbbbbb } /* Text.Whitespace */
+.src .mb { color: #666666 } /* Literal.Number.Bin */
+.src .mf { color: #666666 } /* Literal.Number.Float */
+.src .mh { color: #666666 } /* Literal.Number.Hex */
+.src .mi { color: #666666 } /* Literal.Number.Integer */
+.src .mo { color: #666666 } /* Literal.Number.Oct */
+.src .sa { color: #BA2121 } /* Literal.String.Affix */
+.src .sb { color: #BA2121 } /* Literal.String.Backtick */
+.src .sc { color: #BA2121 } /* Literal.String.Char */
+.src .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.src .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.src .s2 { color: #BA2121 } /* Literal.String.Double */
+.src .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.src .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.src .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.src .sx { color: #008000 } /* Literal.String.Other */
+.src .sr { color: #A45A77 } /* Literal.String.Regex */
+.src .s1 { color: #BA2121 } /* Literal.String.Single */
+.src .ss { color: #19177C } /* Literal.String.Symbol */
+.src .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.src .fm { color: #0000FF } /* Name.Function.Magic */
+.src .vc { color: #19177C } /* Name.Variable.Class */
+.src .vg { color: #19177C } /* Name.Variable.Global */
+.src .vi { color: #19177C } /* Name.Variable.Instance */
+.src .vm { color: #19177C } /* Name.Variable.Magic */
+.src .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style></head><body>
+<h1>Cohort Pipeline + Bayesian Retention</h1>
+<div class="subtitle">Case study · 2022 · Python · PyMC3</div>
+<h2 style='margin-top:32px'>cohort_pipeline.py</h2><div class="src"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="k">def</span> <span class="nf">union_two_df</span><span class="p">(</span><span class="n">df_users_activity</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">df_user_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+    <span class="n">df_union</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_users_activity</span><span class="p">,</span> <span class="n">df_user_data</span><span class="p">,</span>
+                        <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">,</span> <span class="s1">&#39;login_date&#39;</span><span class="p">],</span>
+                        <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">,</span> <span class="s1">&#39;install_date&#39;</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;first 10 rows in df: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df_union</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;column names in df: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df_union</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df_union</span>
+
+<span class="k">def</span> <span class="nf">clean_df</span><span class="p">(</span><span class="n">df_union</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;ua_channel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">)[</span><span class="s1">&#39;ua_channel&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ffill</span><span class="p">()</span><span class="o">.</span><span class="n">bfill</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;cpi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">)[</span><span class="s1">&#39;cpi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ffill</span><span class="p">()</span><span class="o">.</span><span class="n">bfill</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;platform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">)[</span><span class="s1">&#39;platform&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ffill</span><span class="p">()</span><span class="o">.</span><span class="n">bfill</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">)[</span><span class="s1">&#39;install_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ffill</span><span class="p">()</span><span class="o">.</span><span class="n">bfill</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">])</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;login_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;login_date&#39;</span><span class="p">])</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;cohort_day&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;login_date&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">]</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;cohort_day&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;cohort_day&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">days</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;cohort_day&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;cohort_day&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">df_union_cleaned</span> <span class="o">=</span> <span class="n">df_union</span><span class="p">[</span><span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;login_date&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">]]</span>
+
+    <span class="k">return</span> <span class="n">df_union_cleaned</span>
+
+<span class="k">def</span> <span class="nf">add_cumulative_metrics</span><span class="p">(</span><span class="n">df_union</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+    <span class="n">df_union_uu</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">,</span> <span class="s1">&#39;login_date&#39;</span><span class="p">,</span> <span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="s1">&#39;ua_channel&#39;</span><span class="p">,</span> <span class="s1">&#39;cohort_day&#39;</span><span class="p">],</span>
+                                               <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+    <span class="n">df_union_uu</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;user_id&#39;</span><span class="p">:</span> <span class="s1">&#39;user_count&#39;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+    <span class="n">df_union</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;install_date&#39;</span><span class="p">,</span> <span class="s1">&#39;login_date&#39;</span><span class="p">,</span> <span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="s1">&#39;ua_channel&#39;</span><span class="p">,</span> <span class="s1">&#39;cohort_day&#39;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">df_union</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_union</span><span class="p">,</span> <span class="n">df_union_uu</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;ad_revenue_cum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">,</span> <span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="s1">&#39;ua_channel&#39;</span><span class="p">])[</span><span class="s1">&#39;ad_revenue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;iap_revenue_cum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">,</span> <span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="s1">&#39;ua_channel&#39;</span><span class="p">])[</span><span class="s1">&#39;iap_revenue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;transactions_cum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">,</span> <span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="s1">&#39;ua_channel&#39;</span><span class="p">])[</span><span class="s1">&#39;transactions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;total_time_sec_cum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">,</span> <span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="s1">&#39;ua_channel&#39;</span><span class="p">])[</span><span class="s1">&#39;total_time_sec&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;missions_cum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">,</span> <span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="s1">&#39;ua_channel&#39;</span><span class="p">])[</span><span class="s1">&#39;missions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">df_union</span><span class="p">[</span><span class="s1">&#39;sessions_cum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_union</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;install_date&#39;</span><span class="p">,</span> <span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="s1">&#39;ua_channel&#39;</span><span class="p">])[</span><span class="s1">&#39;sessions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+    <span class="n">df_union</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;df_union.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df_union</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">df_user_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;df_user_data.csv&#39;</span><span class="p">)</span>
+    <span class="n">df_users_activity</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;df_users_activity.csv&#39;</span><span class="p">)</span>
+    <span class="n">df_union</span> <span class="o">=</span> <span class="n">union_two_df</span><span class="p">(</span><span class="n">df_users_activity</span><span class="p">,</span> <span class="n">df_user_data</span><span class="p">)</span>
+    <span class="n">df_clean</span> <span class="o">=</span> <span class="n">add_cumulative_metrics</span><span class="p">(</span><span class="n">clean_df</span><span class="p">(</span><span class="n">df_union</span><span class="p">))</span>
+</pre></div>
+<h2 style='margin-top:32px'>bayesian_retention.py</h2><div class="src"><pre><span></span><span class="kn">import</span> <span class="nn">pymc3</span> <span class="k">as</span> <span class="nn">pm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># generate sample data</span>
+<span class="n">days</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="n">retention_rates</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.65</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.55</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.35</span><span class="p">,</span>
+                   <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span>
+                   <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]</span>
+
+<span class="n">n_users</span> <span class="o">=</span> <span class="mi">1000</span>
+
+<span class="c1"># define the model</span>
+<span class="k">with</span> <span class="n">pm</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span> <span class="k">as</span> <span class="n">model</span><span class="p">:</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">days</span><span class="p">)</span>
+
+    <span class="n">likelihood</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="s2">&quot;likelihood&quot;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">observed</span><span class="o">=</span><span class="n">retention_rates</span><span class="p">)</span>
+
+    <span class="c1"># sample from the posterior</span>
+    <span class="n">trace</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># plot the results</span>
+<span class="n">pm</span><span class="o">.</span><span class="n">plot_posterior</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">varnames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma&quot;</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+</body></html>
