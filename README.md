@@ -40,3 +40,4 @@ python3 -m http.server 8000
 ## Re-generate after source changes
 
 The HTMLs are produced via Jupyter `nbconvert` with a sanitization pass. If you update the source notebooks, regenerate from this folder — the masking rules are documented in the generation script.
+# portfolio-demos
