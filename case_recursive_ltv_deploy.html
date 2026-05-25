@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RecursiveLTV — Deployment (GCP VM)</title>
+<style>
+  :root { --bg:#0f172a; --bg-card:#fff; --text:#1e293b; --muted:#64748b; --accent:#3b82f6; --border:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f1f5f9; color:var(--text); margin:0; line-height:1.6; }
+  .wrap { max-width:880px; margin:0 auto; padding:32px 24px 80px; }
+  .hdr { background:var(--bg); color:#f8fafc; border-radius:12px; padding:24px 28px; margin-bottom:24px; }
+  .hdr h1 { font-size:24px; font-weight:700; margin:0 0 6px; }
+  .hdr .sub { color:rgba(248,250,252,0.7); font-size:13px; }
+  .hdr .tag { display:inline-block; font-size:11px; font-weight:600; background:rgba(59,130,246,0.2); color:#93c5fd; padding:3px 10px; border-radius:6px; margin-top:8px; letter-spacing:.5px; }
+  .card { background:var(--bg-card); border-radius:12px; padding:28px 32px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+  .card h1 { font-size:22px; margin:24px 0 12px; padding-bottom:8px; border-bottom:2px solid var(--border); }
+  .card h2 { font-size:18px; margin:24px 0 10px; color:#0f172a; }
+  .card h3 { font-size:15px; margin:18px 0 8px; color:#334155; }
+  .card p, .card li { font-size:14px; }
+  .card pre { background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:12px; line-height:1.5; }
+  .card code { background:#f1f5f9; color:#0f172a; padding:1px 6px; border-radius:4px; font-size:12.5px; }
+  .card pre code { background:none; color:inherit; padding:0; }
+  .card table { border-collapse:collapse; width:100%; margin:12px 0; font-size:13px; }
+  .card th, .card td { border:1px solid var(--border); padding:8px 12px; text-align:left; }
+  .card th { background:#f8fafc; font-weight:600; }
+  .card blockquote { border-left:3px solid var(--accent); padding:4px 16px; color:var(--muted); margin:12px 0; background:#f8fafc; }
+  .card ul, .card ol { padding-left:22px; }
+  .footer { margin-top:32px; font-size:12px; color:var(--muted); text-align:center; }
+</style>
+</head><body><div class="wrap">
+<div class="hdr"><h1>RecursiveLTV — Deployment (GCP VM)</h1><div class="sub">Steps to provision and deploy the service on a GCP VM</div><div class="tag">OWN TOOL · DEPLOYMENT</div></div>
+<div class="card"><h1>GCP VM Deployment (Gunicorn + Nginx + systemd)</h1>
+<p>This bundle deploys RecursiveLTV on a single GCP VM with:
+- <code>gunicorn</code> web service managed by <code>systemd</code>
+- <code>nginx</code> reverse proxy on port 80
+- daily sync via either <code>systemd timer</code> (default) or cron</p>
+<h2>1. Bootstrap host</h2>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span> /opt/recursive-ltv/app
+bash deploy/scripts/bootstrap_gcp_vm.sh
+</code></pre></div>
+
+<h2>2. Configure environment</h2>
+<div class="codehilite"><pre><span></span><code>sudo mkdir -p /opt/recursive-ltv/env
+sudo cp deploy/env/recursive-ltv.env.example /opt/recursive-ltv/env/recursive-ltv.env
+sudo nano /opt/recursive-ltv/env/recursive-ltv.env
+</code></pre></div>
+
+<p>Required for credentials panel encryption:</p>
+<div class="codehilite"><pre><span></span><code>python -c <span class="s2">&quot;from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())&quot;</span>
+</code></pre></div>
+
+<p>Set the generated value as <code>SECRET_ENCRYPTION_KEY</code> in <code>/opt/recursive-ltv/env/recursive-ltv.env</code>.</p>
+<h2>3. Install app and migrate DB</h2>
+<div class="codehilite"><pre><span></span><code>bash deploy/scripts/deploy_app.sh
+</code></pre></div>
+
+<h2>4. Configure nginx + systemd</h2>
+<div class="codehilite"><pre><span></span><code>bash deploy/scripts/install_nginx.sh
+bash deploy/scripts/install_systemd.sh
+</code></pre></div>
+
+<h2>5. Verify services</h2>
+<div class="codehilite"><pre><span></span><code>sudo systemctl status recursive-ltv-web.service
+sudo systemctl status recursive-ltv-sync.timer
+curl -sS http://127.0.0.1:8000/health
+</code></pre></div>
+
+<h2>Optional: use cron instead of timer</h2>
+<div class="codehilite"><pre><span></span><code>bash deploy/scripts/install_cron.sh <span class="m">90</span>
+</code></pre></div>
+
+<h2>File locations</h2>
+<ul>
+<li>Systemd units: <code>/etc/systemd/system/recursive-ltv-*.service</code>, <code>/etc/systemd/system/recursive-ltv-sync.timer</code></li>
+<li>Nginx vhost: <code>/etc/nginx/sites-available/recursive-ltv.conf</code></li>
+<li>App env file: <code>/opt/recursive-ltv/env/recursive-ltv.env</code></li>
+<li>App root: <code>/opt/recursive-ltv/app</code></li>
+</ul></div>
+<div class="footer">Anonymized excerpt from production codebase. Specific identifiers replaced; methodology preserved.</div>
+</div></body></html>

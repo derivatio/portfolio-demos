@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RecursiveLTV — MMP Schema Adapter</title><style>
+:root { --bg:#0f172a; --bg-card:#fff; --text:#1e293b; --muted:#64748b; --accent:#3b82f6; --border:#e2e8f0; }
+* { box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f1f5f9; color:var(--text); margin:0; line-height:1.6; }
+.wrap { max-width:880px; margin:0 auto; padding:32px 24px 80px; }
+.hdr { background:var(--bg); color:#f8fafc; border-radius:12px; padding:24px 28px; margin-bottom:24px; }
+.hdr h1 { font-size:24px; font-weight:700; margin:0 0 6px; }
+.hdr .sub { color:rgba(248,250,252,0.7); font-size:13px; }
+.hdr .tag { display:inline-block; font-size:11px; font-weight:600; background:rgba(59,130,246,0.2); color:#93c5fd; padding:3px 10px; border-radius:6px; margin-top:8px; letter-spacing:.5px; }
+.card { background:var(--bg-card); border-radius:12px; padding:28px 32px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.card h1 { font-size:22px; margin:24px 0 12px; padding-bottom:8px; border-bottom:2px solid var(--border); }
+.card h2 { font-size:18px; margin:24px 0 10px; color:#0f172a; }
+.card h3 { font-size:15px; margin:18px 0 8px; color:#334155; }
+.card p, .card li { font-size:14px; }
+.card pre { background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:12px; line-height:1.5; }
+.card code { background:#f1f5f9; color:#0f172a; padding:1px 6px; border-radius:4px; font-size:12.5px; }
+.card pre code { background:none; color:inherit; padding:0; }
+.card table { border-collapse:collapse; width:100%; margin:12px 0; font-size:13px; }
+.card th, .card td { border:1px solid var(--border); padding:8px 12px; text-align:left; }
+.card th { background:#f8fafc; font-weight:600; }
+.card ul, .card ol { padding-left:22px; }
+.footer { margin-top:32px; font-size:12px; color:var(--muted); text-align:center; }
+</style></head><body><div class="wrap">
+<div class="hdr"><h1>RecursiveLTV — MMP Schema Adapter</h1><div class="sub">Maps raw MMP-vendor exports into the internal cohort schema</div><div class="tag">OWN TOOL · INGESTION ADAPTER</div></div>
+<div class="card"><h1>MMP Schema Adapter</h1>
+<p><code>src/ingestion/mmp_client.py</code> now supports multiple response formats and maps them into the normalized cohort schema.</p>
+<h2>Supported payload shapes</h2>
+<ol>
+<li>Flat rows</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="p">[{</span><span class="nt">&quot;game_name&quot;</span><span class="p">:</span><span class="s2">&quot;NS&quot;</span><span class="p">,</span><span class="nt">&quot;platform&quot;</span><span class="p">:</span><span class="s2">&quot;iOS&quot;</span><span class="p">,</span><span class="nt">&quot;install_date&quot;</span><span class="p">:</span><span class="s2">&quot;2026-01-10&quot;</span><span class="p">,</span><span class="nt">&quot;actual_ltv_d0&quot;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">}]</span><span class="w"></span>
+</code></pre></div>
+
+<ol start="2">
+<li>Wrapped rows</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="nt">&quot;data&quot;</span><span class="p">:[{</span><span class="nt">&quot;game_name&quot;</span><span class="p">:</span><span class="s2">&quot;NS&quot;</span><span class="p">,</span><span class="nt">&quot;install_date&quot;</span><span class="p">:</span><span class="s2">&quot;2026-01-10&quot;</span><span class="p">,</span><span class="nt">&quot;actual_ltv_d0&quot;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">}]}</span><span class="w"></span>
+</code></pre></div>
+
+<ol start="3">
+<li>Nested dimensions/metrics per row</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="nt">&quot;rows&quot;</span><span class="p">:[{</span><span class="nt">&quot;dimensions&quot;</span><span class="p">:{</span><span class="nt">&quot;game_name&quot;</span><span class="p">:</span><span class="s2">&quot;NS&quot;</span><span class="p">,</span><span class="nt">&quot;install_date&quot;</span><span class="p">:</span><span class="s2">&quot;2026-01-10&quot;</span><span class="p">},</span><span class="nt">&quot;metrics&quot;</span><span class="p">:{</span><span class="nt">&quot;cost&quot;</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span><span class="nt">&quot;actual_ltv_d0&quot;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">}}]}</span><span class="w"></span>
+</code></pre></div>
+
+<ol start="4">
+<li>Array rows + columns</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="nt">&quot;columns&quot;</span><span class="p">:[</span><span class="s2">&quot;game_name&quot;</span><span class="p">,</span><span class="s2">&quot;platform&quot;</span><span class="p">,</span><span class="s2">&quot;network_name&quot;</span><span class="p">,</span><span class="s2">&quot;campaign_name&quot;</span><span class="p">,</span><span class="s2">&quot;install_date&quot;</span><span class="p">,</span><span class="s2">&quot;currency&quot;</span><span class="p">,</span><span class="s2">&quot;cost&quot;</span><span class="p">,</span><span class="s2">&quot;actual_ltv_d0&quot;</span><span class="p">],</span><span class="nt">&quot;rows&quot;</span><span class="p">:[[</span><span class="s2">&quot;NS&quot;</span><span class="p">,</span><span class="s2">&quot;iOS&quot;</span><span class="p">,</span><span class="s2">&quot;TikTok&quot;</span><span class="p">,</span><span class="s2">&quot;C1&quot;</span><span class="p">,</span><span class="s2">&quot;2026-01-10&quot;</span><span class="p">,</span><span class="s2">&quot;USD&quot;</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mf">1.0</span><span class="p">]]}</span><span class="w"></span>
+</code></pre></div>
+
+<h2>Mapping controls (<code>.env</code>)</h2>
+<ul>
+<li>Endpoint/query</li>
+<li><code>MMP_BASE_URL</code></li>
+<li><code>MMP_ENDPOINT_PATH</code></li>
+<li><code>MMP_UTC_OFFSET</code></li>
+<li><code>MMP_ATTRIBUTION_SOURCE</code></li>
+<li><code>MMP_AD_SPEND_MODE</code></li>
+<li><code>MMP_COHORT_MATURITY</code></li>
+<li><code>MMP_AD_REVENUE_SOURCES</code></li>
+<li><code>MMP_EXTRA_PARAMS_JSON</code></li>
+<li><code>MMP_DIMENSIONS</code></li>
+<li><code>MMP_METRICS</code></li>
+<li>Field aliases</li>
+<li><code>MMP_FIELD_GAME_NAME</code></li>
+<li><code>MMP_FIELD_PLATFORM</code></li>
+<li><code>MMP_FIELD_NETWORK_NAME</code></li>
+<li><code>MMP_FIELD_CAMPAIGN_NAME</code></li>
+<li><code>MMP_FIELD_INSTALL_DATE</code></li>
+<li><code>MMP_FIELD_CURRENCY</code></li>
+<li><code>MMP_FIELD_COST</code></li>
+<li><code>MMP_FIELD_COST_NETWORK</code></li>
+<li><code>MMP_FIELD_COST_MMP</code></li>
+<li><code>MMP_FIELD_INSTALLS</code></li>
+<li><code>MMP_FIELD_INSTALLS_NETWORK</code></li>
+<li>LTV horizon prefixes</li>
+<li><code>MMP_LTV_METRIC_PREFIXES</code></li>
+<li>ROAS horizon prefixes</li>
+<li><code>MMP_ROAS_METRIC_PREFIXES</code></li>
+</ul>
+<p>Default LTV prefixes are <code>actual_ltv_d,lifetime_value_d,revenue_d,ltv_d</code>, and default ROAS prefixes are <code>actual_roas_d,roas_d</code>, so keys like <code>lifetime_value_d7</code> and <code>roas_d7</code> are parsed automatically.</p>
+<h2>Notes</h2>
+<ul>
+<li>Cohort timezone is UTC.</li>
+<li>Revenue basis is total revenue (<code>IAP + ad</code>).</li>
+<li>RS API endpoint is <code>GET https://automate.mmp.com/reports-service/report</code>.</li>
+<li>Required RS-style params include <code>date_period</code> and <code>app_token__in</code>.</li>
+<li>If payload shape is unknown, ingestion throws an explicit format error.</li>
+<li><code>MMP_API_KEY</code> and <code>MMP_APP_TOKEN</code> can come from <code>.env</code> or the dashboard credentials vault.</li>
+<li>For strict bucket install policy, include both metrics in pulls:</li>
+<li><code>network_installs</code> (used for <code>non_incent</code>)</li>
+<li><code>installs</code> (used for <code>incent</code>)</li>
+<li>For strict bucket cost policy, include both metrics in pulls:</li>
+<li><code>network_cost</code> (used for <code>non_incent</code>)</li>
+<li><code>mmp_cost</code> (used for <code>incent</code>)</li>
+</ul></div>
+<div class="footer">Anonymized excerpt from production codebase. Specific vendor names replaced; methodology preserved.</div>
+</div></body></html>

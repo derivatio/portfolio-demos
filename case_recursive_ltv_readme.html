@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RecursiveLTV — Project README</title>
+<style>
+  :root { --bg:#0f172a; --bg-card:#fff; --text:#1e293b; --muted:#64748b; --accent:#3b82f6; --border:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f1f5f9; color:var(--text); margin:0; line-height:1.6; }
+  .wrap { max-width:880px; margin:0 auto; padding:32px 24px 80px; }
+  .hdr { background:var(--bg); color:#f8fafc; border-radius:12px; padding:24px 28px; margin-bottom:24px; }
+  .hdr h1 { font-size:24px; font-weight:700; margin:0 0 6px; }
+  .hdr .sub { color:rgba(248,250,252,0.7); font-size:13px; }
+  .hdr .tag { display:inline-block; font-size:11px; font-weight:600; background:rgba(59,130,246,0.2); color:#93c5fd; padding:3px 10px; border-radius:6px; margin-top:8px; letter-spacing:.5px; }
+  .card { background:var(--bg-card); border-radius:12px; padding:28px 32px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+  .card h1 { font-size:22px; margin:24px 0 12px; padding-bottom:8px; border-bottom:2px solid var(--border); }
+  .card h2 { font-size:18px; margin:24px 0 10px; color:#0f172a; }
+  .card h3 { font-size:15px; margin:18px 0 8px; color:#334155; }
+  .card p, .card li { font-size:14px; }
+  .card pre { background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:12px; line-height:1.5; }
+  .card code { background:#f1f5f9; color:#0f172a; padding:1px 6px; border-radius:4px; font-size:12.5px; }
+  .card pre code { background:none; color:inherit; padding:0; }
+  .card table { border-collapse:collapse; width:100%; margin:12px 0; font-size:13px; }
+  .card th, .card td { border:1px solid var(--border); padding:8px 12px; text-align:left; }
+  .card th { background:#f8fafc; font-weight:600; }
+  .card blockquote { border-left:3px solid var(--accent); padding:4px 16px; color:var(--muted); margin:12px 0; background:#f8fafc; }
+  .card ul, .card ol { padding-left:22px; }
+  .footer { margin-top:32px; font-size:12px; color:var(--muted); text-align:center; }
+</style>
+</head><body><div class="wrap">
+<div class="hdr"><h1>RecursiveLTV — Project README</h1><div class="sub">Production LTV forecasting service: MMP ingestion → recursive D0→D30 → power-law D365 → Flask cockpit</div><div class="tag">OWN TOOL · README</div></div>
+<div class="card"><h1>RecursiveLTV</h1>
+<p>Production-first LTV forecasting engine for mobile gaming UA/marketing data science.</p>
+<h2>Features</h2>
+<ul>
+<li>Direct MMP API ingestion with rolling backfill sync.</li>
+<li>Recursive step-chain prediction: <code>D0 -&gt; D1 -&gt; D3 -&gt; D7 -&gt; D14 -&gt; D30</code>.</li>
+<li>Power-law extrapolation <code>D31 -&gt; D365</code>.</li>
+<li>Hierarchical backoff for scaling factors: campaign -&gt; network -&gt; platform -&gt; game -&gt; global.</li>
+<li>Confidence and anomaly scoring with WAPE gates.</li>
+<li>Flask + Chart.js dashboard with emergency refresh control.</li>
+<li>Channel bucket filter (<code>Non-Incent Channels</code> vs <code>Incent Channels</code>) and target-ROAS KPI panel.</li>
+<li>CPI-primary ROAS accuracy layer with audit ROAS preservation, hierarchical CPI imputation, and quality flags.</li>
+<li>Model quality and forecast reliability layer with champion-challenger selection and p10/p50/p90 bands.</li>
+<li>UA Decision Cockpit with <code>Scale/Hold/Cut</code> actions, conservative guardrails, impact-first ranking, prior-window deltas, CSV export, and shareable URL state.</li>
+<li>Backtesting &amp; Decision Support snapshots with deterministic bootstrap simulator and advisory threshold calibration.</li>
+</ul>
+<h2>Quick start</h2>
+<ol>
+<li>Create venv and install dependencies:</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>python -m venv .venv
+<span class="nb">source</span> .venv/bin/activate
+pip install -e .<span class="o">[</span>dev<span class="o">]</span>
+</code></pre></div>
+
+<ol start="2">
+<li>Configure env:</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>cp .env.example .env
+</code></pre></div>
+
+<ol start="3">
+<li>Run DB migrations:</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>alembic upgrade head
+</code></pre></div>
+
+<ol start="4">
+<li>Start app:</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>flask --app app run --debug
+</code></pre></div>
+
+<h2>Daily sync</h2>
+<div class="codehilite"><pre><span></span><code>python scripts/run_daily_sync.py --run-mode incremental_daily
+</code></pre></div>
+
+<p>If the dashboard is empty:
+- Run <code>Emergency Refresh</code> from UI with a wider <code>Sync Window (days)</code> (up to 1080), or
+- run sync manually with <code>python scripts/run_daily_sync.py --window-days 1080</code>.</p>
+<p>Sync behavior note:
+- <code>Sync Window (days)</code> is ingestion-only and independent from dashboard <code>Install Start/Install End</code> filters.
+- dashboard date filters control read/query views only; they do not limit MMP ingestion window.</p>
+<p>Use sync admin endpoints for operational visibility:
+- <code>GET /api/admin/sync/status</code> for latest run + active run fields (<code>is_running</code>, <code>active_run_id</code>, <code>active_stage_name</code>).
+- <code>GET /api/admin/sync/runs</code> for paginated run history.
+- <code>GET /api/admin/sync/runs/&lt;run_id&gt;/stages</code> for stage timeline.
+- <code>GET /api/admin/storage/status</code> for table counts, retention cutoffs, and reclaimable-row estimates.
+- <code>POST /api/admin/storage/maintenance</code> to run retention/compaction without ingestion (requires <code>sync.run</code>).</p>
+<h2>Pipeline robustness</h2>
+<ul>
+<li>Sync pipeline now records stage-level telemetry in <code>sync_run_stages</code> (migration <code>0010_pipeline_robustness_sync_stages</code>).</li>
+<li>Stage data is exposed from <code>GET /api/admin/sync/status</code> as <code>last_run_stages</code> with:</li>
+<li><code>stage_name</code>, <code>status</code>, <code>started_at</code>, <code>completed_at</code>, <code>duration_ms</code></li>
+<li><code>details</code> (JSON payload for stage-specific counters)</li>
+<li><code>error_message</code> (if failed)</li>
+<li>Daily sync response now includes normalization counters:</li>
+<li><code>rows_normalized</code></li>
+<li><code>rows_skipped_invalid</code></li>
+<li><code>normalize_skip_reasons</code></li>
+<li><code>stage_count</code></li>
+<li>MMP ingestion now retries transient failures (<code>429/5xx</code> and network exceptions) using:</li>
+<li><code>MMP_RETRY_ATTEMPTS</code></li>
+<li><code>MMP_RETRY_BACKOFF_SECONDS</code></li>
+<li>Large MMP date windows are automatically chunked (default <code>90</code> days) via:</li>
+<li><code>MMP_FETCH_CHUNK_DAYS</code></li>
+<li>Chunk requests can run in parallel for faster long-window sync via:</li>
+<li><code>MMP_FETCH_PARALLEL_CHUNKS</code> (default <code>4</code>)</li>
+</ul>
+<h2>KPI Controls</h2>
+<ul>
+<li>Dashboard <code>Channel Bucket</code>:</li>
+<li><code>Non-Incent Channels</code>: <code>Organic, Google Ads, Apple, Applovin, Facebook, Mintegral, Unity Ads</code></li>
+<li><code>Incent Channels</code>: all other networks.</li>
+<li>Dashboard target controls:</li>
+<li><code>Target ROAS (%)</code> (default <code>120</code>)</li>
+<li><code>Target Horizon</code> (<code>D180</code> or <code>D360</code>)</li>
+<li><code>GET /api/curve</code> now also accepts:</li>
+<li><code>channel_group</code> (<code>non_incent|incent</code>)</li>
+<li><code>include_bands</code> (<code>true|false</code>, default from <code>CURVE_INCLUDE_BANDS_DEFAULT</code>)</li>
+<li><code>target_roas_pct</code> (number, e.g. <code>120</code>)</li>
+<li><code>target_horizon_day</code> (<code>180</code> or <code>360</code>, any <code>30..365</code> accepted)</li>
+<li>KPI Planning Engine API:</li>
+<li><code>GET /api/planner/summary</code><ul>
+<li>accepts current filter params + <code>target_roas_pct</code>, <code>target_horizon_day</code> (<code>180|360</code>), optional <code>status</code></li>
+<li>returns totals (<code>on_track|risk|off_track</code>), medians, and CPI-quality mix</li>
+</ul>
+</li>
+<li><code>GET /api/planner/rows</code><ul>
+<li>accepts current filter params + <code>target_roas_pct</code>, <code>target_horizon_day</code>, optional <code>status</code></li>
+<li>supports <code>page</code>, <code>page_size</code>, <code>sort_by</code>, <code>sort_dir</code></li>
+<li>returns campaign-day planner rows with <code>ecpi_target</code>, required D1/D7 ROAS, gap D1/D7, traffic-light statuses, and quality fields</li>
+</ul>
+</li>
+<li><code>GET /api/curve</code> response now includes <code>kpis</code>:</li>
+<li><code>installs_effective</code>, <code>installs_non_incent_network</code>, <code>installs_incent</code>, <code>installs_source_policy</code></li>
+<li><code>installs_network</code> (legacy compatibility), <code>cpi</code>, <code>ecpi_target</code></li>
+<li><code>required_roas_d1</code>, <code>required_roas_d7</code></li>
+<li><code>actual_roas_d1</code>, <code>actual_roas_d7</code>, <code>predicted_roas_d1</code>, <code>predicted_roas_d7</code></li>
+<li><code>cpi_observed_ratio</code>, <code>cpi_imputed_ratio</code>, <code>quality_flag</code>, <code>quality_note</code></li>
+<li><code>GET /api/curve</code> also includes additive ROAS audit metadata:</li>
+<li>top-level <code>roas_meta</code> (<code>canonical_mode</code>, cohort/source counters, aggregated quality reasons)</li>
+<li>top-level <code>quality_meta</code> (<code>active_model_counts</code>, <code>reliability_warn_count</code>, <code>reliability_warn_ratio</code>, <code>top_reliability_reason</code>)</li>
+<li>per-point prediction bands <code>predicted_p10</code>, <code>predicted_p50</code>, <code>predicted_p90</code></li>
+<li>per-point <code>actual_roas_api</code>, <code>actual_roas_cpi</code>, <code>cpi_effective</code></li>
+<li>Model quality endpoints:</li>
+<li><code>GET /api/model-quality/summary</code></li>
+<li><code>GET /api/model-quality/slices</code></li>
+<li>Decision Cockpit endpoints:</li>
+<li><code>GET /api/decision/summary</code><ul>
+<li>accepts current filters + <code>target_roas_pct</code>, <code>target_horizon_day</code>, optional <code>status</code> and <code>action</code></li>
+<li>returns action totals, impact totals, guardrail/quality ratios, and prior-window deltas</li>
+</ul>
+</li>
+<li><code>GET /api/decision/rows</code><ul>
+<li>accepts current filters + <code>target_*</code>, optional <code>status</code> and <code>action</code></li>
+<li>supports <code>page</code>, <code>page_size</code>, <code>sort_by</code>, <code>sort_dir</code></li>
+<li>returns additive decision fields (<code>action</code>, <code>guardrail_reason</code>, <code>impact_score</code>, <code>rank_score</code>, deltas)</li>
+</ul>
+</li>
+<li><code>GET /api/decision/export.csv</code><ul>
+<li>exports fully filtered and sorted Decision rows as CSV</li>
+</ul>
+</li>
+<li>feature flag: <code>DECISION_COCKPIT_ENABLED</code> (default <code>true</code> in <code>.env.example</code>)</li>
+<li>Backtesting &amp; Decision Support endpoints:</li>
+<li><code>GET /api/backtesting/summary</code></li>
+<li><code>GET /api/backtesting/slices</code></li>
+<li><code>GET /api/backtesting/runs</code></li>
+<li><code>POST /api/admin/backtesting/run</code> (manual trigger, <code>sync.run</code> permission)</li>
+<li><code>GET /api/decision/summary</code> includes additive <code>sim</code> block (expected upside/downside bands, action hit rates, policy mode, threshold suggestion)</li>
+<li><code>GET /api/decision/rows</code> includes additive simulator fields (<code>sim_outcome_p10/p50/p90</code>, confidence/sample/bucket metadata)</li>
+<li>Shareable URL state:</li>
+<li>dashboard now persists filter/target/planner/decision/model-quality/backtesting table state in query params.</li>
+<li>tabbed UI router state is also persisted with:<ul>
+<li><code>tab=overview|planner|decision|reliability|data_management|admin</code></li>
+<li><code>admin_tab=credentials|users|taxonomy</code> (when <code>tab=admin</code>)</li>
+<li><code>dm_page</code>, <code>dm_status</code> (when <code>tab=data_management</code>)</li>
+</ul>
+</li>
+<li>opening a copied URL hydrates controls and table state before refresh.</li>
+<li>Rollback toggle:</li>
+<li>set <code>ROAS_USE_API_READ_PATH=true</code> to temporarily use API ROAS as read path.</li>
+<li>UI rollout toggle:</li>
+<li>set <code>UI_TABBED_LAYOUT=true</code> to enable the clean tabbed main-page layout.</li>
+<li>set <code>UI_TABBED_LAYOUT=false</code> to use the legacy stacked layout.</li>
+<li>set <code>UI_BI_THEME_ENABLED=true</code> to enable BI Slate Enterprise styling.</li>
+<li>set <code>UI_BI_THEME_ENABLED=false</code> to keep legacy visual styling path.</li>
+<li>set <code>UI_DENSITY_DEFAULT</code> to <code>compact|balanced|comfortable</code> (default <code>balanced</code>).</li>
+<li>Manager-friendly explainability:</li>
+<li>dashboard warning presentation uses softer labels (<code>attention</code> / <code>needs review</code>) while keeping thresholds unchanged.</li>
+<li>info tooltip icons are available across Overview, Planner, Decision, Reliability, Backtesting, and Admin sections.</li>
+<li>curve chart is line-first for readability (continuous lines with small points).</li>
+<li>Dashboard performance acceleration:</li>
+<li>interactive endpoints default to last <code>INTERACTIVE_DEFAULT_WINDOW_DAYS</code> when date range is omitted.</li>
+<li>read endpoints return additive <code>meta</code> cache/window fields.</li>
+<li>short-lived API cache (<code>API_CACHE_TTL_SECONDS</code>) improves repeated tab/filter loads.</li>
+<li>Channel taxonomy governance:</li>
+<li>DB-backed taxonomy rules with audit/versioning (<code>channel_taxonomy_rules</code>, <code>channel_taxonomy_audit</code>).</li>
+<li>Unknown networks default to <code>incent</code> and are flagged for drift monitoring.</li>
+<li>Admin endpoints:<ul>
+<li><code>GET /api/admin/channel-taxonomy/rules</code></li>
+<li><code>POST /api/admin/channel-taxonomy/rules</code></li>
+<li><code>PUT /api/admin/channel-taxonomy/rules/&lt;rule_id&gt;</code></li>
+<li><code>DELETE /api/admin/channel-taxonomy/rules/&lt;rule_id&gt;</code></li>
+<li><code>POST /api/admin/channel-taxonomy/apply</code></li>
+<li><code>GET /api/admin/channel-taxonomy/status</code></li>
+</ul>
+</li>
+<li>Configure drift warning threshold via <code>TAXONOMY_DRIFT_WARN_THRESHOLD</code> (default <code>0.05</code>).</li>
+</ul>
+<p>SQLite note:
+- <code>Emergency Refresh</code> is single-flight guarded; concurrent runs return <code>409</code>.
+- Tune <code>SQLITE_LOCK_RETRY_ATTEMPTS</code> and <code>SQLITE_LOCK_RETRY_DELAY_MS</code> for local lock-heavy environments.</p>
+<h2>Storage retention policy</h2>
+<ul>
+<li>Detail retention is bounded by <code>DETAIL_RETENTION_DAYS</code> (default <code>365</code>).</li>
+<li>Cohorts older than detail TTL but inside <code>MAX_BACKFILL_DAYS</code> are compacted to milestone horizons from <code>METRIC_COMPACTION_MILESTONES</code>.</li>
+<li>Cohorts older than <code>MAX_BACKFILL_DAYS</code> are pruned with cascade cleanup.</li>
+<li>Operational and decision-support history is pruned via:</li>
+<li><code>RUN_HISTORY_RETENTION_DAYS</code></li>
+<li><code>BACKTEST_DETAIL_RETENTION_DAYS</code></li>
+<li><code>MODEL_QUALITY_RETENTION_DAYS</code></li>
+<li><code>AUTH_AUDIT_RETENTION_DAYS</code></li>
+<li>Incremental/frequent ingestion and weekly reconcile windows:</li>
+<li><code>INCREMENTAL_FETCH_DAYS</code></li>
+<li><code>FULL_RECONCILE_DAYS</code></li>
+<li>Weekly maintenance optimization can be toggled with:</li>
+<li><code>RETENTION_VACUUM_WEEKLY</code></li>
+<li>Maintenance stages are written to sync stage telemetry, including:</li>
+<li><code>retention_dedupe</code>, <code>retention_compaction</code>, <code>retention_prune_runs</code>,</li>
+<li><code>retention_prune_backtests</code>, <code>retention_prune_quality_tables</code>,</li>
+<li><code>retention_prune_auth_logs</code>, and optional <code>retention_vacuum_optimize</code>.</li>
+</ul>
+<h2>Model quality config</h2>
+<p>Configure in <code>.env</code> (see <code>.env.example</code>):
+- <code>MODEL_CHALLENGER_ENABLED</code>
+- <code>MODEL_BACKTEST_WEEKS</code>
+- <code>MODEL_PROMOTION_MIN_IMPROVEMENT</code>
+- <code>MODEL_MIN_SLICE_SUPPORT</code>
+- <code>RELIABILITY_COVERAGE_GATE</code>
+- <code>RELIABILITY_BIAS_ABS_GATE</code>
+- <code>RELIABILITY_WAPE_D30_GATE</code>
+- <code>MODEL_QUALITY_ERROR_ALERT_RELATIVE_THRESHOLD</code>
+- <code>CPI_OUTLIER_ALERT_THRESHOLD</code>
+- <code>CURVE_INCLUDE_BANDS_DEFAULT</code>
+- <code>DECISION_COCKPIT_ENABLED</code>
+- <code>BACKTESTING_ENABLED</code>
+- <code>BACKTEST_WINDOW_DAYS</code>
+- <code>BACKTEST_OUTCOME_LAG_DAY</code>
+- <code>BACKTEST_MIN_BUCKET_SUPPORT</code>
+- <code>BACKTEST_BOOTSTRAP_SAMPLES</code>
+- <code>BACKTESTING_SHADOW_MODE</code>
+- <code>BACKTEST_CALIBRATION_SUGGESTIONS_ENABLED</code>
+- <code>UI_TABBED_LAYOUT</code>
+- <code>UI_BI_THEME_ENABLED</code>
+- <code>UI_DENSITY_DEFAULT</code>
+- <code>INTERACTIVE_DEFAULT_WINDOW_DAYS</code>
+- <code>API_CACHE_ENABLED</code>
+- <code>API_CACHE_TTL_SECONDS</code>
+- <code>PERF_QUERY_REWRITE_ENABLED</code></p>
+<h2>Accuracy-first diagnostics</h2>
+<ul>
+<li><code>/api/model-quality/slices</code> includes additive diagnostics:</li>
+<li><code>wape_d180</code>, <code>wape_d360</code>, <code>smape_d180</code>, <code>smape_d360</code></li>
+<li><code>slice_effective_support</code></li>
+<li><code>training_window_start</code>, <code>training_window_end</code></li>
+<li><code>model_variant</code></li>
+<li><code>/api/curve</code> quality metadata includes additive diagnostics:</li>
+<li><code>slice_support</code></li>
+<li><code>error_horizon_focus</code></li>
+<li><code>roas_quality_driver</code></li>
+<li>Admin quality-only retrain endpoint:</li>
+<li><code>POST /api/admin/model-quality/retrain</code></li>
+</ul>
+<h2>Cron (GCP VM)</h2>
+<div class="codehilite"><pre><span></span><code><span class="mf">0</span><span class="w"> </span><span class="mf">4</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">cd</span><span class="w"> </span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="kr">to</span><span class="o">/</span><span class="n">RecursiveLTV</span><span class="w"> </span><span class="err">&amp;&amp;</span><span class="w"> </span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="kr">to</span><span class="o">/</span><span class="mf">.</span><span class="n">venv</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">python</span><span class="w"> </span><span class="n">scripts</span><span class="o">/</span><span class="kr">run</span><span class="n">_daily_sync</span><span class="mf">.</span><span class="n">py</span><span class="w"> </span><span class="o">--</span><span class="kr">run</span><span class="o">-</span><span class="n">mode</span><span class="w"> </span><span class="n">incremental_daily</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="nb">log</span><span class="o">/</span><span class="n">recursive_ltv_sync</span><span class="mf">.</span><span class="nb">log</span><span class="w"> </span><span class="mf">2</span><span class="o">&gt;</span><span class="err">&amp;</span><span class="mf">1</span><span class="w"></span>
+<span class="mf">30</span><span class="w"> </span><span class="mf">4</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="n">cd</span><span class="w"> </span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="kr">to</span><span class="o">/</span><span class="n">RecursiveLTV</span><span class="w"> </span><span class="err">&amp;&amp;</span><span class="w"> </span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="kr">to</span><span class="o">/</span><span class="mf">.</span><span class="n">venv</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">python</span><span class="w"> </span><span class="n">scripts</span><span class="o">/</span><span class="kr">run</span><span class="n">_daily_sync</span><span class="mf">.</span><span class="n">py</span><span class="w"> </span><span class="o">--</span><span class="kr">run</span><span class="o">-</span><span class="n">mode</span><span class="w"> </span><span class="n">weekly_full</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="nb">log</span><span class="o">/</span><span class="n">recursive_ltv_sync</span><span class="mf">.</span><span class="nb">log</span><span class="w"> </span><span class="mf">2</span><span class="o">&gt;</span><span class="err">&amp;</span><span class="mf">1</span><span class="w"></span>
+</code></pre></div>
+
+<h2>GCP VM deployment bundle</h2>
+<ul>
+<li><code>deploy/systemd/</code>: gunicorn web unit + sync unit + 04:00 UTC timer</li>
+<li><code>deploy/nginx/</code>: reverse proxy config</li>
+<li><code>deploy/scripts/</code>: bootstrap, deploy, and install scripts</li>
+<li>Runbook: <code>DEPLOYMENT_GCP_VM.md</code></li>
+</ul>
+<h2>MMP adapter</h2>
+<ul>
+<li>Schema adapter docs: <code>MMP_SCHEMA_ADAPTER.md</code></li>
+<li>Supports flat, wrapped, nested dimensions/metrics, and columns+rows payload shapes</li>
+<li>Controlled by <code>MMP_*</code> mapping variables in <code>.env</code></li>
+<li>Uses MMP RS JSON report endpoint (<code>/reports-service/report</code>) with <code>Authorization: Bearer &lt;token&gt;</code>,
+  <code>date_period</code>, and <code>app_token__in</code>.</li>
+<li>To align with Datascape views, configure explicit report filters in <code>.env</code>:</li>
+<li><code>MMP_UTC_OFFSET</code> (example <code>+00:00</code>)</li>
+<li><code>MMP_ATTRIBUTION_SOURCE</code> (example <code>first</code>)</li>
+<li><code>MMP_AD_SPEND_MODE</code> (example <code>network</code>)</li>
+<li><code>MMP_COHORT_MATURITY</code> (example <code>immature</code>)</li>
+<li><code>MMP_AD_REVENUE_SOURCES</code> (example <code>Applovin MAX FB only,AppLovin Max</code>)<ul>
+<li>When this is set, the API pull includes the same <code>ad_revenue_sources</code> filter.</li>
+</ul>
+</li>
+<li><code>MMP_APPLY_AD_REVENUE_SOURCE_FILTER</code> is a legacy toggle and no longer required.</li>
+<li>After any <code>MMP_*</code> env change, restart Flask/Gunicorn and run a new sync.</li>
+<li>For ROAS parity, include <code>roas_d*</code> metrics in <code>MMP_METRICS</code> and keep
+  <code>MMP_ROAS_METRIC_PREFIXES=actual_roas_d,roas_d</code>.</li>
+<li>Include install metric in pulls for CPI/ROAS derivation:</li>
+<li>strict bucket policy:<ul>
+<li><code>non_incent</code> cohorts use <code>network_installs</code></li>
+<li><code>incent</code> cohorts use <code>installs</code></li>
+</ul>
+</li>
+<li>alias accepted by adapter config: <code>installs_network</code> (auto-mapped to <code>network_installs</code>)</li>
+<li>configure field aliases with:<ul>
+<li><code>MMP_FIELD_INSTALLS_NETWORK</code></li>
+<li><code>MMP_FIELD_INSTALLS</code></li>
+</ul>
+</li>
+<li>Include cost metrics in pulls for bucket-specific spend parity:</li>
+<li>strict bucket policy:<ul>
+<li><code>non_incent</code> cohorts use <code>network_cost</code></li>
+<li><code>incent</code> cohorts use <code>mmp_cost</code></li>
+</ul>
+</li>
+<li>configure field aliases with:<ul>
+<li><code>MMP_FIELD_COST_NETWORK</code></li>
+<li><code>MMP_FIELD_COST_MMP</code></li>
+</ul>
+</li>
+<li>Include extended actual checkpoints in <code>MMP_METRICS</code>:</li>
+<li><code>lifetime_value_d60,lifetime_value_d90,lifetime_value_d120</code></li>
+<li>If <code>MMP_ENDPOINT_PATH=/cohorts</code> is still configured, the client auto-retries with <code>/report</code>.</li>
+</ul>
+<h2>Auth</h2>
+<ul>
+<li>Session-based login is enabled via <code>/login</code> with DB-backed users.</li>
+<li>Set <code>FLASK_SECRET_KEY</code> in <code>.env</code> (required for secure sessions).</li>
+<li>Session hardening controls:</li>
+<li><code>SESSION_COOKIE_SECURE</code></li>
+<li><code>SESSION_IDLE_TIMEOUT_MINUTES</code></li>
+<li><code>SESSION_ABSOLUTE_TIMEOUT_HOURS</code></li>
+<li>Login protection controls:</li>
+<li><code>AUTH_MAX_FAILED_ATTEMPTS</code></li>
+<li><code>AUTH_LOCKOUT_MINUTES</code></li>
+<li>Password policy controls:</li>
+<li><code>PASSWORD_MIN_LENGTH</code></li>
+<li><code>PASSWORD_REQUIRE_LETTER</code></li>
+<li><code>PASSWORD_REQUIRE_DIGIT</code></li>
+<li><code>PASSWORD_REQUIRE_SPECIAL</code></li>
+<li>Bootstrap flow: when no users exist, open <code>/login</code> and create the first <code>admin</code> user.</li>
+<li>User/permission management is available in dashboard panel: create, delete, set role, set explicit permissions.</li>
+<li>Password rotation API:</li>
+<li><code>POST /api/auth/change-password</code> (<code>current_password</code>, <code>new_password</code>)</li>
+<li>Auth audit API (admin):</li>
+<li><code>GET /api/admin/auth/audit?limit=100&amp;action=login&amp;username=admin</code></li>
+</ul>
+<p>Roles:
+- <code>admin</code>: all permissions (<code>*</code>)
+- <code>operator</code>: <code>dashboard.view</code>, <code>sync.run</code>, <code>secrets.view</code>
+- <code>viewer</code>: <code>dashboard.view</code></p>
+<p>Known permissions:
+- <code>dashboard.view</code>
+- <code>sync.run</code>
+- <code>secrets.view</code>
+- <code>secrets.manage</code>
+- <code>users.manage</code>
+- <code>taxonomy.manage</code></p>
+<h2>Credentials Vault Panel</h2>
+<ul>
+<li>The dashboard includes an internal credentials panel for secrets like:</li>
+<li><code>MMP_API_KEY</code></li>
+<li><code>MMP_APP_TOKEN</code></li>
+<li><code>APPLOVIN_MAX_REPORTING_API_KEY</code></li>
+<li><code>APPLOVIN_MAX_REPORTING_API_SECRET</code></li>
+<li>Secrets are encrypted at rest in <code>credential_secrets</code> table.</li>
+<li>Set <code>SECRET_ENCRYPTION_KEY</code> to enable vault writes.</li>
+</ul>
+<p>Generate a Fernet-compatible key:</p>
+<div class="codehilite"><pre><span></span><code>python -c <span class="s2">&quot;from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())&quot;</span>
+</code></pre></div>
+
+<h2>Notes</h2>
+<ul>
+<li>v1 operates on UTC install-date cohorts.</li>
+<li>Revenue basis is total revenue (<code>IAP + ad</code>).</li>
+<li>Weekly/monthly raw-grain ingestion is planned for v1.1.</li>
+</ul></div>
+<div class="footer">Anonymized excerpt from production codebase. Specific identifiers replaced; methodology preserved.</div>
+</div></body></html>
