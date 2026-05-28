@@ -27,106 +27,25 @@
 </style>
 </head><body><div class="wrap">
 <div class="hdr"><h1>LTV / ROAS Forecasting Engine — Architecture</h1><div class="sub">Two-layer prediction model with post-processing pipeline and geo-aware residual calibration</div><div class="tag">INDUSTRY PROJECT · ARCHITECTURE</div></div>
-<div class="card"><h1>Architecture</h1>
-<p><strong>Analysis Date:</strong> 2026-02-27</p>
-<h2>Pattern Overview</h2>
-<p><strong>Overall:</strong> Two-layer machine learning prediction system with data pipeline architecture</p>
-<p><strong>Key Characteristics:</strong>
-- Layer 1: Log-linear reference curves at OS × Geo Bracket × Channel level
-- Layer 2: Weighted-average scaling factors at Campaign level
-- Backtest-driven validation with accuracy matrix generation
-- Command-line driven batch processing system</p>
-<h2>Layers</h2>
-<p><strong>Data Ingestion Layer:</strong>
-- Purpose: Fetch and preprocess external marketing data
-- Location: <code>mmp_data_load.py</code>
-- Contains: API client, data transformation, CSV export
-- Depends on: MMP API, pandas, requests
-- Used by: Main prediction engine</p>
-<p><strong>Reference Model Layer:</strong>
-- Purpose: Build baseline prediction curves from historical data
-- Location: <code>ltv_roas_engine_v3.21.py</code> (functions: <code>build_reference_curves</code>, <code>build_retention_reference</code>, <code>build_tail_reference</code>)
-- Contains: Curve fitting algorithms, statistical models, fallback mechanisms
-- Depends on: scipy.optimize, numpy mathematical functions
-- Used by: Prediction generation layer</p>
-<p><strong>Prediction Generation Layer:</strong>
-- Purpose: Generate LTV/ROAS forecasts using reference models and scaling factors
-- Location: <code>ltv_roas_engine_v3.21.py</code> (functions: <code>generate_predictions</code>, <code>get_ref_pred_curve</code>)
-- Contains: Multi-horizon prediction logic, campaign-level adjustments
-- Depends on: Reference model layer, retention calculations
-- Used by: Output and validation layers</p>
-<p><strong>Backtest Validation Layer:</strong>
-- Purpose: Validate prediction accuracy across historical time windows
-- Location: <code>ltv_roas_engine_v3.21.py</code> (functions: <code>run_backtest</code>, <code>generate_backtest_summary</code>)
-- Contains: Time-series cross-validation, accuracy metrics, Excel report generation
-- Depends on: Prediction generation layer
-- Used by: Model evaluation and tuning</p>
-<h2>Data Flow</h2>
-<p><strong>Training Flow:</strong></p>
-<ol>
-<li>Load historical cohort data via <code>load_adjust_data()</code></li>
-<li>Reshape from wide to long format via <code>reshape_long()</code></li>
-<li>Build reference curves using <code>build_reference_curves()</code></li>
-<li>Calculate retention references via <code>build_retention_reference()</code></li>
-<li>Generate tail factors using <code>build_tail_reference()</code></li>
-</ol>
-<p><strong>Prediction Flow:</strong></p>
-<ol>
-<li>Load current cohort data</li>
-<li>Lookup reference curves by OS/Geo/Channel hierarchy</li>
-<li>Apply campaign-specific scaling factors</li>
-<li>Generate predictions for D1-D390 horizons</li>
-<li>Export to CSV with reference curve metadata</li>
-</ol>
-<p><strong>Backtest Flow:</strong></p>
-<ol>
-<li>For each historical input day (D1, D3, D7, D14, etc.)</li>
-<li>Simulate prediction using only data available at that day</li>
-<li>Compare against actual observed LTV values</li>
-<li>Generate accuracy matrices and Excel reports</li>
-</ol>
-<p><strong>State Management:</strong>
-- Stateless functional design with immutable data transformations
-- Reference models built once and cached in memory
-- No persistent state between runs</p>
-<h2>Key Abstractions</h2>
-<p><strong>Reference Curves:</strong>
-- Purpose: Baseline LTV growth patterns by segment
-- Examples: <code>ltv_roas_engine_v3.21.py</code> lines 629-836
-- Pattern: Power law curve fitting with fallback hierarchy (Country → Geo Bracket → OS → Global)</p>
-<p><strong>Scaling Factors:</strong>
-- Purpose: Campaign-level adjustments to reference curves<br />
-- Examples: <code>ltv_roas_engine_v3.21.py</code> lines 1538-1547
-- Pattern: Weighted ratio calculation with clipping bounds</p>
-<p><strong>Tail Factors:</strong>
-- Purpose: Long-term (D120+) LTV extrapolation ratios
-- Examples: <code>ltv_roas_engine_v3.21.py</code> lines 911-1064
-- Pattern: Install-weighted LTV(horizon)/LTV(D120) with vintage awareness</p>
-<p><strong>Bridge Corrections:</strong>
-- Purpose: Early-window shape corrections for specific channels
-- Examples: <code>ltv_roas_engine_v3.21.py</code> lines 1065-1187
-- Pattern: Median ratio adjustments for input days ≤ D7</p>
-<h2>Entry Points</h2>
-<p><strong>Main Prediction Engine:</strong>
-- Location: <code>ltv_roas_engine_v3.21.py</code> main() function (line 2160)
-- Triggers: Command-line execution with argparse
-- Responsibilities: Orchestrate full pipeline, handle CLI arguments, coordinate backtest and prediction modes</p>
-<p><strong>Data Collection Script:</strong>
-- Location: <code>mmp_data_load.py</code> main() function (line 128)
-- Triggers: Manual execution for data refresh
-- Responsibilities: Fetch marketing data from MMP API, preprocess and export to CSV</p>
-<h2>Error Handling</h2>
-<p><strong>Strategy:</strong> Graceful degradation with fallback hierarchy</p>
-<p><strong>Patterns:</strong>
-- Reference curve fitting: Falls back from Country → Geo Bracket → OS → Global levels
-- API failures: Retry with exponential backoff, fail after max attempts
-- Sparse data: Use weighted medians and install-based shrinkage
-- Model validation: R² thresholds trigger fallback to simpler models</p>
-<h2>Cross-Cutting Concerns</h2>
-<p><strong>Logging:</strong> Python logging module with INFO/WARNING levels for pipeline progress
-<strong>Validation:</strong> R² thresholds, monotonicity guards, SF clipping bounds
-<strong>Authentication:</strong> Bearer token authentication for MMP API</p>
-<hr />
-<p><em>Architecture analysis: 2026-02-27</em></p></div>
+<div class="card">
+<h1>Architecture</h1>
+<p><em>Analysis date: 2026-02-27</em></p>
+
+<h2>Overview</h2>
+<p>The engine uses a two-layer design. The first layer builds reference curves — baseline LTV growth patterns fitted to historical cohort data, segmented by OS, geo bracket, and channel. The second layer applies campaign-level scaling factors on top of those reference curves. Most of the LTV curve shape is captured at the segment level; campaign-level variation shows up as a scalar multiplier over the reference.</p>
+
+<h2>Why the layers are separate</h2>
+<p>The reference curve builder and the prediction engine are separate modules deliberately. Backtesting requires replaying the model at historical cutoffs — simulating what the prediction would have been if you'd only had D7 data at the time. If the two were coupled, a clean simulation would be impossible without contaminating the reference curves with future data. Keeping them separate means live predictions and backtest simulations go through the same code path, just with different data windows fed in.</p>
+
+<h2>Data flow</h2>
+<p><strong>Training:</strong> raw cohort data arrives in wide format (one row per cohort, one column per day), gets reshaped to long format, then the reference curve builder fits power-law curves per segment. The fallback hierarchy — Country → Geo Bracket → OS → Global — handles sparse segments gracefully. If there aren't enough cohorts for a reliable country-level fit, the builder falls back to the geo bracket level, and so on.</p>
+
+<p><strong>Prediction:</strong> given a current cohort with data up to input day D, the engine looks up the reference curve for that cohort's OS/geo/channel segment, applies the campaign scaling factor, and generates forecasts from D1 through D390. Tail factors handle D120+ extrapolation separately — the long tail behaves differently from the early growth window and warrants its own fitting step.</p>
+
+<p><strong>Backtest:</strong> for each historical input day in a defined set (D1, D3, D7, D14, D30, ...), the engine simulates a prediction using only data available at that cutoff, then compares against the actuals that materialized afterward. Output is an accuracy matrix across horizons and input days, exported to Excel.</p>
+
+<h2>Error handling</h2>
+<p>The model degrades gracefully rather than failing hard. Curve fitting uses R² thresholds — below the threshold it falls back one level in the segment hierarchy. Campaign scaling factors are clipped to defined bounds to prevent a sparse campaign from producing a nonsensical multiplier. The MMP API client retries on 429 and 5xx with exponential backoff.</p>
+</div>
 <div class="footer">Anonymized excerpt from production codebase. Specific identifiers replaced; methodology preserved.</div>
 </div></body></html>
