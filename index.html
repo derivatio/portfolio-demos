@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Data Portfolio — Demos</title>
+<title>Ahmet Çolak — Data Portfolio</title>
 <style>
 :root { --bg:#f4f6fa; --card:#fff; --text:#1a1f36; --muted:#6b7280; --accent:#0f1c3f; --link:#2563eb; }
 body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
@@ -30,8 +30,8 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
 <div class="container">
 
 <header>
-  <h1>Data Portfolio — Demos</h1>
-  <p>Anonymized case studies + production tools. Mobile-gaming UA, LTV/ROAS, A/B testing.</p>
+  <h1>Ahmet Çolak — Data Portfolio</h1>
+  <p>I'm a data scientist specialising in mobile-gaming UA and LTV/ROAS forecasting. Most of this work was done inside studios under NDA — what you see here is anonymised but not sanitised; methodology, decisions, and results are intact. The code and analysis are mine.</p>
 </header>
 
 <div class="note">
@@ -43,6 +43,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>LTV / ROAS Forecasting Engine — Industry Project</h3>
     <div class="meta">2025–2026 · Python · scikit-learn · Tableau · anonymized</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">The primary forecasting tool used for UA spend decisions; backtest-validated across D1–D390 horizons at campaign, channel, and geo-bracket level.</p>
     <ul>
       <li><a href="case_industry_methods_overview.pdf">Methods overview deck (PDF, 11 slides)</a></li>
       <li><a href="case_industry_architecture.html">Architecture write-up (HTML)</a></li>
@@ -53,6 +54,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>RecursiveLTV — Production LTV Forecasting Service</h3>
     <div class="meta">2025 · Python · Flask · Postgres · Chart.js</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">Production service running daily MMP syncs; Scale/Hold/Cut recommendations fed directly into UA budget decisions.</p>
     <ul>
       <li><a href="case_recursive_ltv_readme.html">Project README (HTML)</a></li>
       <li><a href="case_recursive_ltv_mmp_adapter.html">MMP schema adapter (HTML)</a></li>
@@ -68,6 +70,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>Softlaunch LTV & ROAS Model Design (2026)</h3>
     <div class="meta">Tableau dashboard · LTV estimation · ROAS model design deck</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">Drove the softlaunch go/no-go call and informed D7 budget hold timing during the early install window.</p>
     <ul>
       <li><a href="case_a1_softlaunch_dashboard.html">Interactive softlaunch dashboard (HTML)</a></li>
       <li><a href="case_a1_roas_model_design.pdf">ROAS model design deck (PDF, 5 slides)</a></li>
@@ -77,6 +80,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>Multi-Channel Budget Allocation (2025)</h3>
     <div class="meta">PostgreSQL · Tableau · Attributed ROAS</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">SQL pipeline breaking down attributed ROAS by channel with paid/organic split across a 4-month rollup — directly shifted budget toward channels with positive net ROAS.</p>
     <ul>
       <li><a href="case_a2_sql_queries.html">SQL queries — ROAS allocation, paid/organic split, 4-month rollup</a></li>
     </ul>
@@ -85,6 +89,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>Rewarded-Ad A/B Test (2024)</h3>
     <div class="meta">SQL retention · Bayesian + frequentist A/B · cohort-maturity segmentation</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">Bayesian and frequentist results diverged; recommended against shipping based on cohort-maturity segmentation despite a positive frequentist signal.</p>
     <ul>
       <li><a href="case_a3_q1_sql_retention.html">Q1 — SQL retention notebook</a></li>
       <li><a href="case_a3_q2_ab_analysis.html">Q2 — A/B analysis notebook (PyMC + scipy)</a></li>
@@ -94,6 +99,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>Multi-Segment Icon-Shop A/B Test (2024)</h3>
     <div class="meta">Android/iOS × US/non-US · Bayesian + frequentist per cell</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">Four-segment breakdown (Android/iOS × US/non-US) surfaced platform and geo effects that a pooled test would have hidden.</p>
     <ul>
       <li><a href="case_a4_icon_shop_ab.html">Analysis notebook (4 segments)</a></li>
     </ul>
@@ -102,14 +108,16 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>Performance Marketing Budget Reallocation (2023)</h3>
     <div class="meta">Tableau · retention-adjusted ROAS · conversion-model critique</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">Retention-adjusted ROAS analysis challenged the existing conversion model; the critique drove a methodology change.</p>
     <ul>
-      <li>Tableau workbook + written critique — hosted as Tableau Public link (add when published).</li>
+      <li>Tableau workbook available on request.</li>
     </ul>
   </div>
 
   <div class="proj">
     <h3>Cohort Retention SQL & Event Pipeline (2023)</h3>
     <div class="meta">SQL (window functions) · Python · Tableau</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">Window-function SQL for rolling retention cohorts combined with a Python preprocessing pipeline feeding Tableau reporting.</p>
     <ul>
       <li><a href="case_a6_sql_and_pipeline.html">Retention SQL + Python preparation pipeline</a></li>
     </ul>
@@ -118,6 +126,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>Soft-Launch Diagnosis & Stakeholder Dashboards (2023)</h3>
     <div class="meta">Tableau · two stakeholder decks · written analytics</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">Built two decks from the same analysis — one for operations, one for management — with different framing for each audience.</p>
     <ul>
       <li><a href="case_a7_data_preprocess.html">Data preprocessing notebook</a></li>
       <li><a href="case_a7_part2_analytics.pdf">Part 2 — Written analytics (PDF)</a></li>
@@ -127,6 +136,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>Three-Part Analyst Test (2023)</h3>
     <div class="meta">Exploratory plots · UA bucketing · cumulative revenue forecasting design</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">A structured analyst skills assessment: exploratory analysis, UA campaign bucketing, and cumulative revenue forecasting design.</p>
     <ul>
       <li><a href="case_a8_q1_exploratory.html">Q1 — Exploratory plots notebook</a></li>
       <li><a href="case_a8_q2_ua_bucketing.html">Q2 — UA campaign bucketing notebook</a></li>
@@ -137,6 +147,7 @@ footer { color:var(--muted); font-size:12px; text-align:center; margin-top:32px;
   <div class="proj">
     <h3>Cohort Pipeline + Bayesian Retention (2022)</h3>
     <div class="meta">Python · PyMC3 · cohort cumulatives</div>
+    <p style="font-size:13px;color:#374151;margin:0 0 10px;">Bayesian retention model using PyMC3 fitted to cohort cumulatives — the earliest piece in this portfolio, from 2022.</p>
     <ul>
       <li><a href="case_a9_cohort_and_bayesian.html">Cohort pipeline + Bayesian retention model (source)</a></li>
     </ul>

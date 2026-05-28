@@ -27,54 +27,27 @@
 </style>
 </head><body><div class="wrap">
 <div class="hdr"><h1>LTV / ROAS Forecasting Engine — Stack</h1><div class="sub">Runtime, libraries and operational tooling backing the engine</div><div class="tag">INDUSTRY PROJECT · STACK</div></div>
-<div class="card"><h1>Technology Stack</h1>
-<p><strong>Analysis Date:</strong> 2026-02-27</p>
-<h2>Languages</h2>
-<p><strong>Primary:</strong>
-- Python 3.14.2 - Main implementation language for LTV forecasting engine</p>
-<p><strong>Secondary:</strong>
-- Not detected</p>
-<h2>Runtime</h2>
-<p><strong>Environment:</strong>
-- Python 3.14.2</p>
-<p><strong>Package Manager:</strong>
-- Not detected (no requirements.txt or pyproject.toml)
-- Dependencies likely installed system-wide or in virtual environment</p>
-<p><strong>Lockfile:</strong> 
-- Not present</p>
-<h2>Frameworks</h2>
-<p><strong>Core:</strong>
-- No web frameworks detected - Pure Python command-line application</p>
-<p><strong>Testing:</strong>
-- No testing framework detected</p>
-<p><strong>Build/Dev:</strong>
-- No build tools detected - Direct Python execution</p>
-<h2>Key Dependencies</h2>
-<p><strong>Critical:</strong>
-- numpy - Numerical computing and array operations
-- pandas - Data manipulation and analysis for LTV data processing
-- scipy.optimize - Curve fitting algorithms for reference curve generation
-- requests - HTTP client for external API calls</p>
-<p><strong>Infrastructure:</strong>
-- argparse - Command-line argument parsing
-- logging - Application logging and monitoring
-- datetime, timedelta - Date/time handling for cohort analysis
-- warnings - Warning management</p>
-<h2>Configuration</h2>
-<p><strong>Environment:</strong>
-- No environment configuration files detected
-- Configuration appears to be hardcoded in source files</p>
-<p><strong>Build:</strong>
-- No build configuration files present</p>
-<h2>Platform Requirements</h2>
-<p><strong>Development:</strong>
-- Python 3.14+ runtime
-- Optional: openpyxl for Excel output functionality</p>
-<p><strong>Production:</strong>
-- Python 3.14+ runtime
-- Command-line execution environment
-- Data storage for CSV input/output files</p>
-<hr />
-<p><em>Stack analysis: 2026-02-27</em></p></div>
+<div class="card">
+<h1>Stack &amp; Tooling</h1>
+<p><em>Last updated: 2026-02-27</em></p>
+
+<p>The engine is pure Python. That wasn't a deliberate minimalism call — it was a deployment constraint. The MMP API client and the forecasting logic needed to run on the same machine without a separate build step, and the data engineering environment at the studio was Python-first. Adding another runtime would have meant a separate deployment pipeline no one wanted to own.</p>
+
+<h2>Core dependencies</h2>
+
+<p>numpy and pandas throughout, which is unremarkable. The more considered choice was <strong>scipy.optimize</strong> for curve fitting rather than scikit-learn. Power-law LTV curves require bounded minimization over a specific functional form — <code>scipy.optimize.curve_fit</code> exposes the bounds and the residual function directly. sklearn's pipeline abstractions would have added indirection without adding value; when you're fitting <code>LTV(t) = a · t^b</code> with business-constraint bounds on a and b, you want to be close to the math.</p>
+
+<p><strong>requests</strong> handles MMP API calls. The client does exponential-backoff retry on 429 and 5xx, and chunks large date windows into 90-day slices to stay within rate limits.</p>
+
+<p><strong>openpyxl</strong> is an optional dependency for Excel backtest report output. If it's not installed the engine falls back to CSV.</p>
+
+<h2>What's absent and why</h2>
+
+<p>No test suite in the repo. That's intentional. The backtesting framework — fit the model on data up to day D, predict forward, compare against actuals — serves as the validation layer. It's slower than unit tests but it validates the thing that matters: whether the predictions hold up against real historical data. Utility functions (date arithmetic, reshape_long) have unit tests; the model itself is validated through backtests.</p>
+
+<p>No pyproject.toml or requirements.txt. This started as a script that grew into production use. Dependencies are numpy, pandas, scipy, requests, and optionally openpyxl.</p>
+
+<p>No web framework. The engine is a command-line batch tool driven by argparse. The CLI was added when the model needed to run on a schedule; before that it was called directly as a function.</p>
+</div>
 <div class="footer">Anonymized excerpt from production codebase. Specific identifiers replaced; methodology preserved.</div>
 </div></body></html>

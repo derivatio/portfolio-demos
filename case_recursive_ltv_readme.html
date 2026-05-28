@@ -384,6 +384,13 @@ pip install -e .<span class="o">[</span>dev<span class="o">]</span>
 <li>v1 operates on UTC install-date cohorts.</li>
 <li>Revenue basis is total revenue (<code>IAP + ad</code>).</li>
 <li>Weekly/monthly raw-grain ingestion is planned for v1.1.</li>
-</ul></div>
+</ul>
+<h2>Known limitations</h2>
+<ul>
+<li>The MMP adapter assumes Adjust's v4 cohort export schema. If your MMP returns a different column layout, update the normalization step in <code>scripts/run_daily_sync.py</code> before the first sync.</li>
+<li>Champion-challenger model selection runs per-campaign at sync time, not on demand. If you change the target ROAS or horizon in the dashboard, the model shown was selected under the previous target — re-selection happens at the next daily sync, not immediately.</li>
+<li>The <code>Emergency Refresh</code> button triggers a full re-ingestion, not just a model refit. On a wide sync window (e.g., 1080 days) this can take 20–30 minutes with no progress indicator beyond the sync status endpoint.</li>
+</ul>
+</div>
 <div class="footer">Anonymized excerpt from production codebase. Specific identifiers replaced; methodology preserved.</div>
 </div></body></html>
